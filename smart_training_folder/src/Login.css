@@ -1,0 +1,17 @@
+body{
+    font-family: 'poppins', sans-serif;
+    background-color: aliceblue;
+}
+
+.logo{
+    width: 50%;
+    
+}
+
+.left-box{
+    /* create a background color gradient from the top left corner*/
+    background: linear-gradient(to right, #255aec, #0e7be1);
+    margin: 0px;
+    padding: 0px;
+    
+}
