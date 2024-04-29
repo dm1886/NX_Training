@@ -50,6 +50,7 @@ const Login = () => {
                    
                 }
         }   catch (error) { 
+            alert('Some Server Error Occured, Please try again later');
             console.error('Error logging in', error);
         }
 
