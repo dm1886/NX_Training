@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/css/bootstrap.css';
 import {Link, useNavigate} from "react-router-dom"
 import axios from 'axios'
-// import { Alert } from "bootstrap";
+import AdminDashboard from "./Components/AdminDashboard";
 
 
 export default function Dashboard() {
@@ -20,6 +20,8 @@ export default function Dashboard() {
                     console.log('Authenticated');
                     console.log(res.data);
                     setUserInfo(res.data.userInfo);
+                        console.log(res.data.userInfo);
+
                     setIsLoading(false);
                 } else {
                     // Redirect to login page if not authenticated
@@ -47,7 +49,19 @@ export default function Dashboard() {
         }
     };
   
-  
+    const renderDashboardContent = () => {
+       
+        switch(userInfo.access_level) {
+            case 1 :
+                return <AdminDashboard userinfo={userInfo} />;
+            case 2 :
+                return <ManagerDashboardContent />;
+            case 3 :
+                return <UserDashboardContent />;
+            default:
+                return <div>Unauthorized access</div>;
+        }
+    };
   
     if (isLoading) {
         return <div><h1>Loading...</h1></div>;
@@ -55,15 +69,20 @@ export default function Dashboard() {
   
     return (
         <div>
-            {userInfo ? (
-                <h1>Welcome {userInfo.name} {userInfo.surname}! Your email is {userInfo.email}</h1>
-            ) : (
-                <h1>You are not logged in.</h1>
-            )}
-  
-            <button type="button" className="btn btn-danger" onClick={handleLogout}>Logout</button>
+           
+           {renderDashboardContent()}
   
         </div>
     );
   }
   
+
+
+
+function ManagerDashboardContent() {
+    return <div>Manager Dashboard Content</div>;
+}
+
+function UserDashboardContent() {
+    return <div>User Dashboard Content</div>;
+}
