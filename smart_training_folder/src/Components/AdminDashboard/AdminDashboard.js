@@ -16,10 +16,12 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';  // Icon for dark
 const drawerWidth = 240;
 
 const AdminDashboard = ({ userinfo }) => {
+  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [open, setOpen] = useState(false); // This manages the drawer state
   const [currentView, setCurrentView] = useState('Home'); // Default view
   const [mode, setMode] = useState('light'); // Manage theme mode
+  const gridClassName = mode === 'dark' ? 'ag-theme-quartz-dark' : 'ag-theme-quartz';
 
   const theme = useMemo(() => createTheme({
     palette: {
@@ -32,9 +34,11 @@ const AdminDashboard = ({ userinfo }) => {
     console.log("Toggling drawer from", open, "to", !open);
     setOpen(!open); // This should toggle the state thus showing/hiding the drawer
   };
+
+  // This function handles the logout process
   const handleLogout = async () => {
     try {
-        await axios.post('http://localhost:3001/logout', {}, { withCredentials: true });
+        await axios.post(`${apiUrl}/logout`, {}, { withCredentials: true });
         localStorage.removeItem('userInfo'); // Clear user info from local storage
        
         navigate('/login'); // Redirect to login page
@@ -43,20 +47,20 @@ const AdminDashboard = ({ userinfo }) => {
         alert('Failed to log out, please try again.');
     }
 };
-
+  // Inside the drawer, this function renders the view based on the current view state
   const renderView = () => {
     switch(currentView) {
       case 'Home':
         return <HomeView />;
       case 'Admin':
-        return <AdminView />;
+        return <AdminView gridClassName={gridClassName} />;
       default:
         return <HomeView />;
     }
   };
 
 
-  // 
+  // This function renders the user's access level on the navigation drawer
   const renderAdminLevel = () => {
     if (userinfo && userinfo.access_level === 1) {
       return <Typography variant="p" sx={{color: "gray"}}>Admin</Typography>;
@@ -67,7 +71,7 @@ const AdminDashboard = ({ userinfo }) => {
     }
   };
 
-
+  // This function toggles the theme mode
   const toggleDarkMode = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
   };

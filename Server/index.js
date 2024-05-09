@@ -6,15 +6,14 @@ import cors from 'cors';
 import session from 'express-session';
 
 
-
-
-const port = 3001;
+const port = process.env.PORT || 3001;  // Ensure there's a default if PORT isn't set
+const apiUrl = process.env.API_URL || `http://localhost:${port}`;  // Default to localhost if API_URL isn't set
 const app = express();
 app.use(bodyParser.json());
 app.use(express.json());
 
 
-//Handle Session
+//MARK: Handle Session
 app.use(
   session({
     secret: "your_secret_key", // Choose a strong secret key
@@ -30,18 +29,17 @@ app.use(
 
 //End of session
 
-//setup cors options
+//TODO: setup cors options
+dotenv.config();
 const corsOptions = {   
-    origin: 'http://localhost:3000',
+    origin: process.env.API_URL,
     credentials: true,
     optionsSuccessStatus: 200
 }
 app.use(cors(corsOptions));
 //end of cors
 
-// Connection to the database using pg and variable dotenv
-dotenv.config();
-
+// MARK: DB Connection
 const db = new pg.Pool({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -50,16 +48,16 @@ const db = new pg.Pool({
     database: process.env.DB_NAME
 });
 
-db.connect((err, client, done) => {
+db.query('SELECT NOW()', (err, res) => {
     if (err) {
         console.error('Error connecting to the database:', err);
     } else {
-        console.log('Connected to the database');
+        console.log('Connected to the database at:', res.rows[0].now);
     }
-    done();
 });
 
 
+// MARK: Routes server
 app.get('/', (req, res) => {
     console.log("SERVER response to get /");
     if (req.session.isAuthenticated) {
@@ -74,7 +72,7 @@ app.get('/', (req, res) => {
   });
 
 
-// handle the post request into /login, the function need to query into the database if the staffname and password are correct and return an object with the name user email staff number of the user, if match use session to autenticate the user and return the user object, if not return a 401 status code
+//MARK: Login
 app.post('/login', (req, res) => {
     console.log("SERVER response to post Login");
     const { staffNumber, password } = req.body;
@@ -103,7 +101,7 @@ app.post('/login', (req, res) => {
     });
 });
 
-
+//MARK: Logout
 app.post('/logout', (req, res) => {
     // Destroy the server-side session
     req.session.destroy(err => {
@@ -121,6 +119,7 @@ app.post('/logout', (req, res) => {
   });
 
 
+  //MARK: Check Cookie
 app.get('/check-cookie', (req, res) => {
     if (req.session.isAuthenticated) {
         res.status(200).json({ result: 'success' });
@@ -129,8 +128,72 @@ app.get('/check-cookie', (req, res) => {
     }
   })
 
+  //MARK: Get Users
+app.get('/users', (req, res) => {
+    console.log("SERVER response to get /users");
+    if (req.session.isAuthenticated) {
+        db.query('SELECT * FROM amu_users', (err, result) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Internal server error');
+            } else {
+                console.log("SERVER response sending the users " + result.rows.length);
+                res.status(200).json(result.rows);
+            }
+        });
+    } else {
+        console.log('Unauthorized request to /users');
+        res.status(401).json({ error: "Unauthorized" });
+    }
+});
+//TODO: Get User by ID 
+app.delete('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+      const result = await db.query('DELETE FROM amu_users WHERE id = $1', [id]);
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ message: "Error deleting user" });
+    }
+  });
 
+ //MARK: Create new User
+  app.post('/users', (req, res) => {
+    console.log("SERVER response to POST /users");
+    const {id, staff_number, name, surname, email, access_level, password} = req.body;
+    
+    const query = `
+      INSERT INTO amu_users (id, staff_number, name, surname, email, access_level, password)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (id) DO UPDATE
+      SET staff_number = EXCLUDED.staff_number,
+          name = EXCLUDED.name,
+          surname = EXCLUDED.surname,
+          email = EXCLUDED.email,
+          access_level = EXCLUDED.access_level,
+          password = EXCLUDED.password
+      RETURNING *;
+    `;
+  
+    db.query(query, [id, staff_number, name, surname, email, access_level, password], (err, result) => {
+      if (err) {
+        console.error('Error executing query', err);
+        res.status(500).send('Internal server error');
+      } else {
+        // If the row was updated, the RETURNING * clause will return the updated row.
+        res.status(201).json(result.rows[0]);
+      }
+    });
+  });
+  
+
+
+  //MARK: Server run on port
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Example app listening at ${apiUrl}`);
  }
 );

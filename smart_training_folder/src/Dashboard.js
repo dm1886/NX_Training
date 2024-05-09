@@ -1,20 +1,22 @@
 import React , {useEffect, useState} from "react";
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/css/bootstrap.css';
-import {Link, useNavigate} from "react-router-dom"
+import {useNavigate} from "react-router-dom"
 import axios from 'axios'
-import AdminDashboard from "./Components/AdminDashboard";
+import AdminDashboard from "./Components/AdminDashboard/AdminDashboard";
 
 
 export default function Dashboard() {
-    
+    const apiUrl = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState(null);  // State to store user info
     const [isLoading, setIsLoading] = useState(true);  // State to handle loading
   
+
+    // Fetch user info from the server and set the user info state, if authenticated, else redirect to login page
     useEffect(() => {
         axios.defaults.withCredentials = true;
-        axios.get('http://localhost:3001/')
+        axios.get(`${apiUrl}/`, { withCredentials: true })
             .then((res) => {
                 if (res.status === 200) {
                     console.log('Authenticated');
@@ -35,20 +37,11 @@ export default function Dashboard() {
                 navigate('/login');
             });
         
-    }, [navigate]);
+    },  [navigate, apiUrl]);
+
   
-    const handleLogout = async () => {
-        try {
-            await axios.post('http://localhost:3001/logout', {}, { withCredentials: true });
-            localStorage.removeItem('userInfo'); // Clear user info from local storage
-            setUserInfo(null);  // Update local state
-            navigate('/login'); // Redirect to login page
-        } catch (error) {
-            console.error('Logout failed:', error);
-            alert('Failed to log out, please try again.');
-        }
-    };
-  
+
+    //Render the dashboard content based on the user's access level
     const renderDashboardContent = () => {
        
         switch(userInfo.access_level) {
@@ -57,6 +50,8 @@ export default function Dashboard() {
             case 2 :
                 return <ManagerDashboardContent />;
             case 3 :
+                return <InstructorDashBoardContent />;
+            case 4 :
                 return <UserDashboardContent />;
             default:
                 return <div>Unauthorized access</div>;
@@ -81,6 +76,9 @@ export default function Dashboard() {
 
 function ManagerDashboardContent() {
     return <div>Manager Dashboard Content</div>;
+}
+function InstructorDashBoardContent() {
+    return <div>User Dashboard Content</div>;
 }
 
 function UserDashboardContent() {

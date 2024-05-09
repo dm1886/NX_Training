@@ -1,11 +1,12 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Login.css'; 
 import React , {useEffect, useState} from "react";
-import {Link, useNavigate} from "react-router-dom"
+import {useNavigate} from "react-router-dom"
 import axios from 'axios'
 
 
 const Login = () => {
+    const apiUrl = process.env.REACT_APP_API_URL;
     const [values, setValues] = useState(
         {
             staffNumber: '',
@@ -20,7 +21,7 @@ const Login = () => {
     useEffect(() => {
         const checkCookie = async () => {
             try {
-                const res = await axios.get('http://localhost:3001/check-cookie');
+                const res = await axios.get(`${apiUrl}/check-cookie`);
                 if (res.status === 200 && res.data.result === 'success') {
                     console.log('Cookie found, redirecting to /');
                     navigate('/');
@@ -31,7 +32,7 @@ const Login = () => {
         };
 
         checkCookie();
-    }, []);
+    });
     
 
 
@@ -39,7 +40,7 @@ const Login = () => {
         e.preventDefault();
         console.log("CLIENT request to Login");
         try {
-            const res = await axios.post('http://localhost:3001/login', values);
+            const res = await axios.post(`${apiUrl}/login`, values);
                 //if response is 200, redirect to the / page
                 //else pop out a alert password or staff number is incorrect
                 if (res.status === 200 && res.data.result === 'success') {

@@ -5,7 +5,7 @@ const HomeView = () => {
   return (
     <div>
       <h2>Home View</h2>
-      <p>Welcome to the Home Page!</p>
+      <p>Welcome to the Home Page ADMIN!</p>
     </div>
   );
 };
