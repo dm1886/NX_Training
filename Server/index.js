@@ -6,8 +6,9 @@ import cors from 'cors';
 import session from 'express-session';
 
 
-const port = process.env.PORT || 3001;  // Ensure there's a default if PORT isn't set
-const apiUrl = process.env.API_URL || `http://localhost:${port}`;  // Default to localhost if API_URL isn't set
+const port = process.env.PORT || 3001;
+// This should ideally be your local network IP or domain name if set in the .env file
+const serverIp = process.env.API_URL || 'localhost:3001';
 const app = express();
 app.use(bodyParser.json());
 app.use(express.json());
@@ -31,12 +32,25 @@ app.use(
 
 //TODO: setup cors options
 dotenv.config();
-const corsOptions = {   
-    origin: process.env.API_URL,
-    credentials: true,
-    optionsSuccessStatus: 200
-}
+const allowedOrigins = ['http://localhost:3000', `http://${serverIp}:3000`, 'http://192.168.50.52:3000', 'http://192.168.50.10:3000'];
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log(`Origin of request ${origin}`);  // Log the origin to see what is being checked
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      console.log('Allowed CORS for:', origin);
+      callback(null, true); // Origin is allowed
+    } else {
+      console.log('Blocked CORS for:', origin);
+      callback(new Error('CORS not allowed for this origin')); // Origin is not allowed
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable pre-flight across-the-board
 //end of cors
 
 // MARK: DB Connection
@@ -164,22 +178,24 @@ app.delete('/users/:id', async (req, res) => {
  //MARK: Create new User
   app.post('/users', (req, res) => {
     console.log("SERVER response to POST /users");
-    const {id, staff_number, name, surname, email, access_level, password} = req.body;
+    const {id, staff_number, name, surname, email, access_level, password, rank, instructor_type } = req.body;
     
     const query = `
-      INSERT INTO amu_users (id, staff_number, name, surname, email, access_level, password)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO amu_users (id, staff_number, name, surname, email, access_level, password, rank, instructor_type)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8 , $9)
       ON CONFLICT (id) DO UPDATE
       SET staff_number = EXCLUDED.staff_number,
           name = EXCLUDED.name,
           surname = EXCLUDED.surname,
           email = EXCLUDED.email,
           access_level = EXCLUDED.access_level,
-          password = EXCLUDED.password
+          password = EXCLUDED.password,
+          rank = EXCLUDED.rank,
+          instructor_type = EXCLUDED.instructor_type
       RETURNING *;
     `;
   
-    db.query(query, [id, staff_number, name, surname, email, access_level, password], (err, result) => {
+    db.query(query, [id, staff_number, name, surname, email, access_level, password, rank, instructor_type ], (err, result) => {
       if (err) {
         console.error('Error executing query', err);
         res.status(500).send('Internal server error');
@@ -190,10 +206,45 @@ app.delete('/users/:id', async (req, res) => {
     });
   });
   
+  //MARK: Delete the user by ID
+  app.delete('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    console.log("Received ID for deletion:", id);  // This will show what ID is actually received.
+  
+    try {
+      const deleteQuery = 'DELETE FROM amu_users WHERE id = $1';
+      const result = await db.query(deleteQuery, [id]);
+  
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ message: "Error deleting user" });
+    }
+  });
 
+  // Assuming Express app setup is done and 'app' is your Express instance
+app.get('/licensesforid', async (req, res) => {
+  const { userId } = req.query;
+  console.log("Received userId:", userId);  // This will show what ID is actually received.
+  try {
+    const result = await db.query(
+      'SELECT id, license_type, number, issue_date, expire_date, type FROM licenses WHERE user_id = $1',
+      [userId]
+    );
+    res.json(result.rows);
+    console.log("SERVER response to get /licensesforid");
+    console.log(result.rows);
+  } catch (error) {
+    console.error('Error retrieving licenses:', error);
+    res.status(500).send('Failed to retrieve licenses');
+  }
+});
 
   //MARK: Server run on port
-app.listen(port, () => {
-  console.log(`Example app listening at ${apiUrl}`);
- }
-);
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server listening on http://${serverIp}:${port}`);
+});

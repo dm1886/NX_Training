@@ -1,12 +1,21 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Login.css'; 
-import React , {useEffect, useState} from "react";
+import React  from "react";
 import {useNavigate} from "react-router-dom"
 import axios from 'axios'
+import { useEffect, useState } from 'react';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert'; // This needs the @mui/lab package
+
 
 
 const Login = () => {
+const [snackbarOpen, setSnackbarOpen] = useState(false);
+const [snackbarMessage, setSnackbarMessage] = useState('');
+ 
     const apiUrl = process.env.REACT_APP_API_URL;
+    console.log("API URL is set to:", apiUrl);
+
     const [values, setValues] = useState(
         {
             staffNumber: '',
@@ -15,8 +24,6 @@ const Login = () => {
 
     const navigate = useNavigate();
     axios.defaults.withCredentials = true;
-
-
 
     useEffect(() => {
         const checkCookie = async () => {
@@ -30,9 +37,10 @@ const Login = () => {
                 console.error('Error checking cookie', error);
             }
         };
-
+        console.log(`Making API request to: ${apiUrl}/check-cookie`);
         checkCookie();
-    });
+    }, []); // <-- Add empty dependency array here
+    
     
 
 
@@ -41,21 +49,21 @@ const Login = () => {
         console.log("CLIENT request to Login");
         try {
             const res = await axios.post(`${apiUrl}/login`, values);
-                //if response is 200, redirect to the / page
-                //else pop out a alert password or staff number is incorrect
-                if (res.status === 200 && res.data.result === 'success') {
-                    console.log('Login successful');
-                    navigate('/');
-                } else {
-                    console.log('Login failed');
-                   
-                }
-        }   catch (error) { 
-            alert('Some Server Error Occured, Please try again later');
+            if (res.status === 200 && res.data.result === 'success') {
+                console.log('Login successful');
+                navigate('/');
+            } else {
+                console.log('Login failed');
+                setSnackbarMessage('Incorrect username or password.');
+                setSnackbarOpen(true);
+            }
+        } catch (error) { 
+            // More specific error, such as network issues or server configuration errors
+            const errorMessage = error.response ? error.response.data.message : error.message;
+            setSnackbarMessage(`Login failed: ${errorMessage}`);
+            setSnackbarOpen(true);
             console.error('Error logging in', error);
         }
-
-        
     }
 
 
@@ -106,6 +114,11 @@ const Login = () => {
                         </div>
                     </div>
                 </div>
+                <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)}>
+            <Alert onClose={() => setSnackbarOpen(false)} severity="error" sx={{ width: '100%' }}>
+                {snackbarMessage}
+            </Alert>
+        </Snackbar>
             </div>
     );
 };

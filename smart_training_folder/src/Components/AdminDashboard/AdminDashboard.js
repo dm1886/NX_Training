@@ -11,8 +11,9 @@ import Avatar from '@mui/material/Avatar';
 import HomeView from './HomeView';
 import AdminView from './AdminView';
 import Brightness4Icon from '@mui/icons-material/Brightness4';  // Icon for dark mode toggle
-
-
+import HomeIcon from '@mui/icons-material/Home';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import LogoutIcon from '@mui/icons-material/Logout';
 const drawerWidth = 240;
 
 const AdminDashboard = ({ userinfo }) => {
@@ -129,16 +130,19 @@ const AdminDashboard = ({ userinfo }) => {
           <List sx={{ width: '100%', margin:"0" }}>
               <ListItem disablePadding>
                 <ListItemButton onClick={() => { setCurrentView('Home'); }}>
+                 <HomeIcon sx={{ marginRight: 2 }} />  
                   <ListItemText primary="Home" />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
                 <ListItemButton onClick={() => { setCurrentView('Admin'); }}>
+                  <AdminPanelSettingsIcon sx={{ marginRight: 2 }} />
                   <ListItemText primary="Admin" />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
                 <ListItemButton onClick={handleLogout}>
+                  <LogoutIcon sx={{ marginRight: 2 }} />
                   <ListItemText primary="Logout" />
                 </ListItemButton>
               </ListItem>
