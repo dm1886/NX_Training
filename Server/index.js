@@ -244,6 +244,61 @@ app.get('/licensesforid', async (req, res) => {
   }
 });
 
+
+
+app.get('/pilots', async (req, res) => {
+  try {
+    // SQL query to join amu_users with licenses table
+    const queryText = `
+      SELECT u.id, u.staff_number, u.name, u.surname, u.rank,
+             l.license_type, l.number, l.issue_date, l.expire_date,ir_expire_date, l.type
+      FROM amu_users u
+      LEFT JOIN licenses l ON u.id = l.user_id; 
+    `;
+
+    const result = await db.query(queryText);
+    console.log(result.rows); // Debugging the raw output
+
+    // Reduce the result set into grouped data by user id
+    const pilots = result.rows.reduce((acc, row) => {
+      const staffNumberStr = row.staff_number ? row.staff_number.toString() : 'Not available';
+      
+      // Initialize the pilot data structure if not already present
+      if (!acc[row.id]) {
+        acc[row.id] = {
+          id: row.id,
+          staff_number: staffNumberStr,
+          name: row.name,
+          surname: row.surname,
+          rank: row.rank,
+          licenses: []  // Prepare an array to hold licenses
+        };
+      }
+
+      // Add license info if present
+      if (row.license_type && row.number) {
+        acc[row.id].licenses.push({
+          license_type: row.license_type,
+          number: row.number,
+          issue_date: row.issue_date,
+          expire_date: row.expire_date,
+          ir_expire_date: row.ir_expire_date,
+          type: row.type,
+
+        });
+      }
+      return acc;
+    }, {});
+    
+    console.log("SERVER response to get /pilots: " + JSON.stringify(pilots)); // Proper logging
+    res.json(Object.values(pilots));  // Convert the accumulated object back to array for response
+    // console.log('contain: ', pilots.licenses.length)
+  } catch (error) {
+    console.error('Failed to fetch pilots:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
   //MARK: Server run on port
   app.listen(port, '0.0.0.0', () => {
     console.log(`Server listening on http://${serverIp}:${port}`);

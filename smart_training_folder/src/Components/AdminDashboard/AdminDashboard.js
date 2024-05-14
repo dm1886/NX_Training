@@ -8,13 +8,21 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Divider from '@mui/material/Divider';
 import ListItemButton from '@mui/material/ListItemButton';
 import Avatar from '@mui/material/Avatar';
-import HomeView from './HomeView';
-import AdminView from './AdminView';
+import HomeView from './Home/HomeView';
+import AdminView from './Admin/AdminView';
 import Brightness4Icon from '@mui/icons-material/Brightness4';  // Icon for dark mode toggle
 import HomeIcon from '@mui/icons-material/Home';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import GradingIcon from '@mui/icons-material/Grading';
+import HandleChecksView from './Flight Check/HandleChecksView';
 const drawerWidth = 240;
+
+
+
+
+
+
 
 const AdminDashboard = ({ userinfo }) => {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -55,6 +63,8 @@ const AdminDashboard = ({ userinfo }) => {
         return <HomeView />;
       case 'Admin':
         return <AdminView gridClassName={gridClassName} />;
+      case 'Checks':
+        return <HandleChecksView />;
       default:
         return <HomeView />;
     }
@@ -79,83 +89,132 @@ const AdminDashboard = ({ userinfo }) => {
 
   return (
     <ThemeProvider theme={theme}>
-    <Box sx={{ display: 'flex', width: '100vw', overflowX: 'hidden' }}>  
-      <CssBaseline />
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, width: open ? `calc(100vw - ${drawerWidth}px)` : '100vw' }}>
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
-            Dashboard
-          </Typography>
-          
-          <Button color="inherit" onClick={toggleDarkMode}>
-            <Brightness4Icon />
-          </Button>
+      <Box sx={{ display: "flex", width: "100vw", overflowX: "hidden" }}>
+        <CssBaseline />
+        <AppBar
+          position="fixed"
+          sx={{
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            width: open ? `calc(100vw - ${drawerWidth}px)` : "100vw",
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
+              Dashboard
+            </Typography>
 
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': { 
+            <Button color="inherit" onClick={toggleDarkMode}>
+              <Brightness4Icon />
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <Drawer
+          variant="permanent"
+          sx={{
             width: drawerWidth,
-            boxSizing: 'border-box' },
-            display: open ? 'block' : 'none'
-        }}
-      >
-        
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0'}}>
-        <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56, mt:'16px'}}>
-                {userinfo && userinfo.name ? userinfo.name.charAt(0) : '?'}
-              </Avatar>
-              <Typography variant="h6" sx={{ margin: '8px 0' }}>
-                Welcome {userinfo && userinfo.name ? userinfo.name : 'User'}
-              </Typography>
-              {renderAdminLevel()}
-              
-              <Divider />
-              
-              {/* Button list navigation */}
-          <Box sx={{ width: '100%', textAlign: 'left', paddingLeft: '0' }} >
-          <List sx={{ width: '100%', margin:"0" }}>
-              <ListItem disablePadding>
-                <ListItemButton onClick={() => { setCurrentView('Home'); }}>
-                 <HomeIcon sx={{ marginRight: 2 }} />  
-                  <ListItemText primary="Home" />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton onClick={() => { setCurrentView('Admin'); }}>
-                  <AdminPanelSettingsIcon sx={{ marginRight: 2 }} />
-                  <ListItemText primary="Admin" />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton onClick={handleLogout}>
-                  <LogoutIcon sx={{ marginRight: 2 }} />
-                  <ListItemText primary="Logout" />
-                </ListItemButton>
-              </ListItem>
-            </List>
-            </Box>    
-         
+            flexShrink: 0,
+            "& .MuiDrawer-paper": {
+              width: drawerWidth,
+              boxSizing: "border-box",
+            },
+            display: open ? "block" : "none",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "0",
+            }}
+          >
+            <Avatar
+              sx={{
+                bgcolor: "primary.main",
+                width: 56,
+                height: 56,
+                mt: "16px",
+              }}
+            >
+              {userinfo && userinfo.name ? userinfo.name.charAt(0) : "?"}
+            </Avatar>
+            <Typography variant="h6" sx={{ margin: "8px 0" }}>
+              Welcome {userinfo && userinfo.name ? userinfo.name : "User"}
+            </Typography>
+            {renderAdminLevel()}
+
+            <Divider />
+
+            {/* Button list navigation */}
+            <Box sx={{ width: "100%", textAlign: "left", paddingLeft: "0" }}>
+              <List sx={{ width: "100%", margin: "0" }}>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => {
+                      setCurrentView("Home");
+                    }}
+                  >
+                    <HomeIcon sx={{ marginRight: 2 }} />
+                    <ListItemText primary="Home" />
+                  </ListItemButton>
+                </ListItem>
+
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => {
+                      setCurrentView("Checks");
+                    }}
+                  >
+                    <GradingIcon sx={{ marginRight: 2 }} />
+                    <ListItemText primary="Flight Checks" />
+                  </ListItemButton>
+                </ListItem>
+
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => {
+                      setCurrentView("Admin");
+                    }}
+                  >
+                    <AdminPanelSettingsIcon sx={{ marginRight: 2 }} />
+                    <ListItemText primary="Admin" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton onClick={handleLogout}>
+                    <LogoutIcon sx={{ marginRight: 2 }} />
+                    <ListItemText primary="Logout" />
+                  </ListItemButton>
+                </ListItem>
+              </List>
+            </Box>
+          </Box>
+        </Drawer>
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1, 
+            p: 3, 
+            width: `calc(100vw - ${open ? drawerWidth : 0}px)`, 
+            transition: 'margin 0.3s, width 0.3s',
+            marginTop: '64px',  // Ensure top margin equals AppBar height
+            height: 'calc(100vh - 64px)'  // Adjust height to be viewport height minus AppBar height
+          }}
+        >
+          <Toolbar />{" "}
+          {/* This is necessary to offset the content below the AppBar */}
+          {renderView()}
         </Box>
-      </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: `calc(100vw - ${open ? drawerWidth : 0}px)`, transition: 'margin 0.3s, width 0.3s'  }}>
-        <Toolbar />  {/* This is necessary to offset the content below the AppBar */}
-        {renderView()}
       </Box>
-    </Box>
     </ThemeProvider>
   );
 };
