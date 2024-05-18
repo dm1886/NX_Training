@@ -6,7 +6,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-
+import Chip from '@mui/material/Chip';
 const PilotInfoSection = ({reportType, formData, setFormData }) => {
   const [pilots, setPilots] = useState([]);
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -52,9 +52,7 @@ const handleOptionSelected = (event, newValue) => {
       licenseValidity: formatDate(license?.expire_date) || "", // Assuming expire_date field exists
       instrumentValidity: formatDate(license?.ir_expire_date) || "", // Placeholder
       medicalValidity: formatDate(med?.expire_date), // Placeholder
-      // Explicitly set captain and firstOfficer based on rank
-      captain: newValue.rank === "cpt",
-      firstOfficer: newValue.rank === "fo"
+      
     });
     // Ensure that captain and firstOfficer are mutually exclusive
     if (newValue.rank === "cpt") {
@@ -113,9 +111,10 @@ const handleOptionSelected = (event, newValue) => {
   };
 
   const handleDateChange = (newValue) => {
+    const dateValue = new Date(newValue); // Ensuring it's a Date object
     setFormData({
       ...formData,
-      date: newValue
+      date: dateValue
     });
   };
 
@@ -273,94 +272,69 @@ const handleOptionSelected = (event, newValue) => {
         </Grid>
 
         {/* -- Operations section -- */}
-        <Typography variant="h6" gutterBottom>
-          Operations
-        </Typography>
-
-        <Grid
-          container
-          spacing={2}
-          sx={{ display: "flex", justifyContent: "space-between" }}
-        >
-          {[
-            "initialQualification",
-            "recurrent",
-            "requalification",
-            "specialQualification",
-            "postRelease",
-          ].map((item, index, array) => (
-            <Grid
-              item
-              xs={12}
-              sm={index === array.length - 1 ? "auto" : true}
-              key={item}
-              sx={{ flexGrow: index === array.length - 1 ? 1 : 0 }}
-            >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData[item] || false}
-                    onChange={handleCheckChange}
-                    name={item}
-                  />
-                }
-                label={
-                  item.charAt(0).toUpperCase() +
-                  item.slice(1).replace(/[A-Z]/g, " $&")
-                }
-                sx={{
-                  flexDirection: "column-reverse", // Flip the order so checkbox is on top
-                  alignItems: "center", // Center-align the checkbox and label
-                  width: "100%", // Take full width of the grid item
-                  justifyContent:
-                    index === array.length - 1 ? "flex-end" : "flex-start",
-                }}
-                labelPlacement="bottom"
-              />
-            </Grid>
-          ))}
+     
+        <Divider>
+        <Chip label="Select check for:" size="large" />
+      </Divider>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
+              {[
+                "initialQualification",
+                "recurrent",
+                "requalification",
+                "specialQualification",
+                "postRelease",
+              ].map((item) => (
+                <FormControlLabel
+                  key={item}
+                  control={
+                    <Checkbox
+                      checked={formData[item] || false}
+                      onChange={handleCheckChange}
+                      name={item}
+                    />
+                  }
+                  label={item.charAt(0).toUpperCase() + item.slice(1).replace(/[A-Z]/g, " $&")}
+                  sx={{ flex: "1 0 45%" }} // MARK: Adjust flex to ensure two rows
+                />
+              ))}
+            </Box>
+          </Grid>
         </Grid>
-
-        <Grid
-      container
-      spacing={2}
-      sx={{ display: "flex", justifyContent: "space-between" }}
-    >
-      {[
-        "ftd",
-        "sim",
-        "aircraft",
-        "line",
-        "area_route_qual",
-      ].map((item, index, array) => (
-        <Grid
-          item
-          xs={12}
-          sm={index === array.length - 1 ? "auto" : true}
-          key={item}
-          sx={{ flexGrow: index === array.length - 1 ? 1 : 0 }}
-        >
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData[item] || false}
-                onChange={(event) => handleCheckChangeSecond(event, item)}
-                name={item}
-              />
-            }
-            label={formatLabel(item)}
-            sx={{
-              flexDirection: "column", // Checkbox above the label
-              alignItems: "center", // Center-align the checkbox and label
-              width: "100%", // Take full width of the grid item
-              justifyContent:
-                index === array.length - 1 ? "flex-end" : "flex-start",
-            }}
-            labelPlacement="bottom"
-          />
+        <Divider>
+        <Chip label="Select one" size="large" />
+      </Divider>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
+              {[
+                "ftd",
+                "sim",
+                "aircraft",
+                "line",
+                "area_route_qual",
+              ].map((item) => (
+                <FormControlLabel
+                  key={item}
+                  control={
+                    <Checkbox
+                      checked={formData[item] || false}
+                      onChange={(event) => handleCheckChangeSecond(event, item)}
+                      name={item}
+                    />
+                  }
+                  label={formatLabel(item)}
+                  sx={{ flex: "1 0 45%" }} // MARK: Adjust flex to ensure two rows
+                />
+              ))}
+            </Box>
+          </Grid>
         </Grid>
-      ))}
-    </Grid>
+        <Divider>
+        <Chip label="Other info" size="large" />
+      </Divider>
+
 
     <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>

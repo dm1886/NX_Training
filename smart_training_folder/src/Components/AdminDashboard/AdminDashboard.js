@@ -16,6 +16,8 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import GradingIcon from '@mui/icons-material/Grading';
 import HandleChecksView from './Flight Check/HandleChecksView';
+import GenerateCKPdf from './Flight Check/GenerateCKPdf'
+
 const drawerWidth = 240;
 
 
@@ -62,9 +64,11 @@ const AdminDashboard = ({ userinfo }) => {
       case 'Home':
         return <HomeView />;
       case 'Admin':
-        return <AdminView gridClassName={gridClassName} />;
+        return <AdminView  />;
       case 'Checks':
         return <HandleChecksView />;
+      case 'PdfTest':
+        return <GenerateCKPdf />;
       default:
         return <HomeView />;
     }
@@ -178,7 +182,16 @@ const AdminDashboard = ({ userinfo }) => {
                     <ListItemText primary="Flight Checks" />
                   </ListItemButton>
                 </ListItem>
-
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => {
+                      setCurrentView("PdfTest");
+                    }}
+                  >
+                    <GradingIcon sx={{ marginRight: 2 }} />
+                    <ListItemText primary="PdfTest" />
+                  </ListItemButton>
+                </ListItem>
                 <ListItem disablePadding>
                   <ListItemButton
                     onClick={() => {
@@ -203,10 +216,11 @@ const AdminDashboard = ({ userinfo }) => {
           component="main"
           sx={{
             flexGrow: 1, 
-            p: 3, 
+            pl:2,
+            pr:2,
             width: `calc(100vw - ${open ? drawerWidth : 0}px)`, 
             transition: 'margin 0.3s, width 0.3s',
-            marginTop: '64px',  // Ensure top margin equals AppBar height
+            marginTop: '10px',  // Ensure top margin equals AppBar height
             height: 'calc(100vh - 64px)'  // Adjust height to be viewport height minus AppBar height
           }}
         >

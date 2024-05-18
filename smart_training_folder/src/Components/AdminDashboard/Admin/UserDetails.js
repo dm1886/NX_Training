@@ -34,10 +34,10 @@ const UserDetails = ({ user }) => {
     </Grid>
       {/* Bottom Box */}
       <Grid item xs={12}>
-        <Card variant="outlined" sx={{ p: 2, boxShadow: 3 }}>
-          <Typography variant="subtitle1">Licenses</Typography>
+        {/* <Card variant="outlined" sx={{ p: 2, boxShadow: 3 }}>
+          <Typography variant="subtitle1">Licenses</Typography> */}
           <Licenses userId={user.id} />
-        </Card>
+        {/* </Card> */}
       </Grid>
     </Grid>
   </div>

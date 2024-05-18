@@ -5,76 +5,52 @@ import PilotInfoSection from './PilotInfoSection';
 // import LicenseInfoSection from './LicenseInfoSection';
 // import CheckInfoSection from './CheckInfoSection';
 
-function FillReport({ reportType, onBackToChecks, onFormSubmit }) {
+function FillReport({ reportType, onBackToChecks, onFormSubmit, formData, setFormData }) { // MARK: Accept formData and setFormData as props
   const [isDirty, setDirty] = useState(false);
 
-  const [formData, setFormData] = useState({
-    id: null,
-    name: '',
-    AMU_no: '',
-    date: new Date(),
-    ACFT_SIM_type: "",
-    reg: '',
-    routeLocal: '',
-    session: '',
-    licenseNumber: '',
-    licenseValidity: '',
-    instrumentValidity: '',
-    medicalValidity: '',
-    simValidity: '',
-    captain: false,
-    firstOfficer: false,
-    initialQualification: false,
-    recurrent: false,
-    requalification: false,
-    specialQualification: false,
-    postRelease: false,
-    ftd: false,
-    sim: false,
-    aircraft: false,
-    line: false,
-    area_route_qual: false,
-  });
-
-
-
+  
   // useEffect to log formData changes
- useEffect(() => {
-  console.log("FormData updated:", formData);
-  const isFieldFilled = (key, value) => {
-    if (typeof value === 'string') return value.trim() !== '';
-    if (typeof value === 'boolean') {
-      // Assuming all boolean fields can be true or false without affecting form validity
-      return true; 
+  useEffect(() => {
+    console.log("FormData updated:", formData);
+
+    const isFieldFilled = (key, value) => {
+      if (typeof value === 'string') return value.trim() !== '';
+      if (typeof value === 'boolean') {
+        // Assuming all boolean fields can be true or false without affecting form validity
+        return true;
+      }
+      if (value instanceof Date) return value && !isNaN(value.valueOf());
+      return value != null;
+    };
+
+    // Specify which checkboxes must be true to consider the form valid
+    const requiredCheckboxes = ["initialQualification", "recurrent", "requalification", "specialQualification", "postRelease", "ftd", "sim", "aircraft", "line", "area_route_qual"];
+    const atLeastOneCheckboxSelected = requiredCheckboxes.some(key => formData[key] === true);
+
+    const unfilledFields = [];
+    const allFieldsFilled = Object.entries(formData).every(([key, value]) => {
+      // Exclude specific fields from validation
+      if (["reg", "routeLocal", "session", "simValidity"].includes(key)) {
+        return true;
+      }
+      const filled = isFieldFilled(key, value);
+      if (!filled) unfilledFields.push(key);
+      return filled;
+    });
+
+    const formIsValid = allFieldsFilled && atLeastOneCheckboxSelected;
+
+    if (!formIsValid) {
+      console.log("Unfilled fields or no checkboxes selected:", unfilledFields.join(", "));
     }
-    if (value instanceof Date) return value && !isNaN(value.valueOf());
-    return value != null;
-  };
 
-  // Specify which checkboxes must be true to consider the form valid
-  const requiredCheckboxes = ["initialQualification", "recurrent", "requalification", "specialQualification", "postRelease", "ftd", "sim", "aircraft", "line", "area_route_qual"];
-  const atLeastOneCheckboxSelected = requiredCheckboxes.some(key => formData[key] === true);
-
-  const unfilledFields = [];
-  const allFieldsFilled = Object.entries(formData).every(([key, value]) => {
-    const filled = isFieldFilled(key, value);
-    if (!filled) unfilledFields.push(key);
-    return filled;
-  });
-
-  const formIsValid = allFieldsFilled && atLeastOneCheckboxSelected;
-
-  if (!formIsValid) {
-    console.log("Unfilled fields or no checkboxes selected:", unfilledFields.join(", "));
-  }
-
-  setDirty(formIsValid);
-}, [formData]);
+    setDirty(formIsValid);
+  }, [formData]);
 
 const handleSubmit = (event) => {
   event.preventDefault();
   if (isDirty) {
-    onFormSubmit(formData);  // Assuming this prop function will handle view switching
+    onFormSubmit(formData); 
     setDirty(false);
   }
 };
@@ -85,33 +61,25 @@ const handleSubmit = (event) => {
       onBackToChecks();
     }
   };
+  
   return (
-    <Container component="main" maxWidth="lg" >
+    <Container component="main" maxWidth="xl" sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Typography component="h3" variant="h3" gutterBottom> {reportType} </Typography>
       <Box sx={{
-        marginTop: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        border: '1px solid #ccc',
-        padding: 2,
+        flexGrow: 1,
+        // overflowY: 'hidden',
+        width: '100%',
         borderRadius: 2,
-        overflowY: 'auto',
-        height: '100vh',
       }}>
-
-        <Typography component="h3" variant="h3" gutterBottom> {reportType} </Typography>
         <PilotInfoSection formData={formData} setFormData={setFormData} />
-        
-   
-
-
-
-        <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mt: 3, mb: 2 }} onClick={handleSubmit} disabled={!isDirty}>
-          Continue
-        </Button>
-        <Button type="button" fullWidth variant="outlined" color="secondary" sx={{ mt: 1, mb: 2 }} onClick={handleBack}>
-          Back to Checks
-        </Button>
+        <Box sx={{ mt: 'auto' }}>
+          <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mt: 3, mb: 2 }} onClick={handleSubmit} disabled={!isDirty}>
+            Continue
+          </Button>
+          <Button type="button" fullWidth variant="outlined" color="secondary" sx={{ mt: 1, mb: 2 }} onClick={handleBack}>
+            Back to Checks
+          </Button>
+        </Box>
       </Box>
     </Container>
   );

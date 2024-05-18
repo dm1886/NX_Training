@@ -1,14 +1,21 @@
 import React from 'react'
-import { Typography, Card, CardContent, CardActions, Button, Grid, Container, Breadcrumbs, Link , Divider } from '@mui/material';
+import { Typography, Card, CardContent, CardActions, Button, Grid, Container, Breadcrumbs, Link, Divider } from '@mui/material';
 import { Box } from '@mui/system';
-import { useNavigate } from 'react-router-dom';
 
 function ChecksView({ onReportSelect }) {
+  const appBarHeight = 128; // Example height of the app bar
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      <Container sx={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+    <Box sx={{
+      height: `calc(100vh - ${appBarHeight}px)`, // Subtract app bar height
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between', // Ensure content is spaced
+      overflow: 'hidden', // Prevent scrolling
+      padding: 2
+    }}>
+      <Container sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* Section Title and Subtitle */}
-        <Box sx={{ marginBottom: 4 }}>
+        <Box sx={{ marginBottom: 4, flexShrink: 0 }}>
           <Typography variant="h4" component="h1" gutterBottom>
             Digital Report Form
           </Typography>
@@ -17,8 +24,8 @@ function ChecksView({ onReportSelect }) {
           </Typography>
         </Box>
 
-      {/* Cards in a flex box */}
-      <Grid container spacing={2} sx={{ flexGrow: 1, overflow: 'auto', justifyContent: 'space-evenly' }}>
+        {/* Cards in a flex box */}
+        <Grid container spacing={2} sx={{ flexGrow: 1, justifyContent: 'space-evenly' }}>
           {/* Card 1 */}
           <Grid item>
             <Card sx={{ width: 250, height: 300, display: 'flex', flexDirection: 'column' }}>
@@ -40,7 +47,7 @@ function ChecksView({ onReportSelect }) {
               </Box>
               <Divider />
               <CardActions sx={{ justifyContent: 'center' }}>
-                <Button variant="contained" color="success"  onClick={() => onReportSelect('Line Check Form')}>
+                <Button variant="contained" color="success" onClick={() => onReportSelect('Line Check Form')}>
                   Go to Fill Report
                 </Button>
               </CardActions>
@@ -51,18 +58,17 @@ function ChecksView({ onReportSelect }) {
           {/* This example shows one card, replicate this structure for the other three with different content if necessary */}
         </Grid>
 
-        {/* Breadcrumbs Navigation at bottom left */}
-        <Box sx={{ alignSelf: 'flex-start', marginTop: 'auto' }}>
+        {/* Breadcrumbs Navigation at bottom */}
+        <Box sx={{ alignSelf: 'center', flexShrink: 0, marginTop: 2 }}>
           <Breadcrumbs aria-label="breadcrumb">
-            <Link color="inherit" >
+            <Link color="inherit">
               Reports
             </Link>
             <Typography color="textPrimary">Digital Reports List</Typography>
           </Breadcrumbs>
         </Box>
-
       </Container>
-    </Box> 
+    </Box>
   )
 }
 

@@ -49,6 +49,7 @@ function EditToolbar(props) {
   return (
     <GridToolbarContainer>
       <Button color="primary" startIcon={<AddIcon />} onClick={handleClick}>
+        
         Add record
       </Button>
     </GridToolbarContainer>
