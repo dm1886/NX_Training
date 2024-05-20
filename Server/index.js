@@ -4,7 +4,7 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import session from 'express-session';
-
+import scoresfile from './scores.js'
 
 const port = process.env.PORT || 3001;
 // This should ideally be your local network IP or domain name if set in the .env file
@@ -298,6 +298,98 @@ app.get('/pilots', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
+
+// Endpoint to get the last report_id
+app.get('/lastReportId', async (req, res) => {
+  try {
+    const result = await db.query('SELECT report_id FROM reports ORDER BY report_id DESC LIMIT 1');
+    const lastReportId = result.rows.length > 0 ? result.rows[0].report_id : 0;
+    res.json({ lastReportId });
+  } catch (error) {
+    console.error('Error fetching last report_id:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+const getOperationValue = (formData) => {
+  if (formData.ftd) return 1;
+  if (formData.sim) return 2;
+  if (formData.aircraft) return 3;
+  if (formData.line) return 4;
+  if (formData.area_route_qual) return 5;
+  return null;
+};
+
+const getTypeValue = (formData) => {
+  if (formData.initialQualification) return 1;
+  if (formData.recurrent) return 2;
+  if (formData.requalification) return 3;
+  if (formData.specialQualification) return 4;
+  if (formData.postRelease) return 5;
+  return null;
+};
+
+const getCheckFormTypeValue = (checkFormType) => {
+  if (checkFormType === 'CK') return 1;
+  if (checkFormType === 'TN') return 2;
+  return null; // handle unexpected values if necessary
+};
+
+
+
+app.post('/saveReport', async (req, res) => {
+  console.log("SERVER response to POST /saveReport", req.body);
+  const { id, name, AMU_no, date, ACFT_SIM_type, reg, routeLocal, session, licenseNumber, licenseValidity, instrumentValidity, medicalValidity, simValidity, captain, firstOfficer, initialQualification, recurrent, requalification, specialQualification, postRelease, ftd, sim, aircraft, line, area_route_qual, checkFormType, instructor_id, user_id } = req.body;
+  const operation = getOperationValue(req.body);
+  const type = getTypeValue(req.body);
+  const checkFormTypeValue = getCheckFormTypeValue(checkFormType);
+
+  const client = await db.connect(); // MARK: Connect client
+  try {
+    await client.query('BEGIN'); // MARK: Start transaction
+
+    const result = await client.query(
+      `INSERT INTO reports (report_id, user_id, checkFormType, operation, type, ACFT_SIM_type, routeLocal, reg, date, session, instructor_id) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+       ON CONFLICT (report_id) DO UPDATE SET
+         user_id = EXCLUDED.user_id,
+         checkFormType = EXCLUDED.checkFormType,
+         operation = EXCLUDED.operation,
+         type = EXCLUDED.type,
+         ACFT_SIM_type = EXCLUDED.ACFT_SIM_type,
+         routeLocal = EXCLUDED.routeLocal,
+         reg = EXCLUDED.reg,
+         date = EXCLUDED.date,
+         session = EXCLUDED.session,
+         instructor_id = EXCLUDED.instructor_id
+       RETURNING report_id`,
+      [id, user_id, checkFormTypeValue, operation, type, ACFT_SIM_type, routeLocal, reg, date, session, instructor_id]
+    );
+
+    const reportId = result.rows[0].report_id;
+
+    // Insert scores
+    const scoreResult = await scoresfile.insertScores(client, reportId);
+
+    if (scoreResult.success) {
+      await client.query('COMMIT'); // MARK: Commit transaction
+      res.status(200).json({ message: "Report saved successfully", reportId: reportId });
+    } else {
+      throw new Error(scoreResult.message);
+    }
+  } catch (error) {
+    await client.query('ROLLBACK'); // MARK: Rollback transaction
+    console.error("Failed to save report:", error);
+    res.status(500).json({ message: "Failed to save report" });
+  } finally {
+    client.release(); // MARK: Release client
+  }
+});
+
+
+
 
   //MARK: Server run on port
   app.listen(port, '0.0.0.0', () => {

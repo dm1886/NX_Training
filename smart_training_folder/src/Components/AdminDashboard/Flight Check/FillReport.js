@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Box, Container, Divider, Typography } from '@mui/material';
+import { Button, Box, Container, Divider, Typography , Grid } from '@mui/material';
 // import TitleAndSubtitle from './TitleAndSubtitle';
 import PilotInfoSection from './PilotInfoSection';
 // import LicenseInfoSection from './LicenseInfoSection';
 // import CheckInfoSection from './CheckInfoSection';
 
-function FillReport({ reportType, onBackToChecks, onFormSubmit, formData, setFormData }) { // MARK: Accept formData and setFormData as props
+function FillReport({ userinfo, reportType, onBackToChecks, onFormSubmit, formData, setFormData }) { // MARK: Accept formData and setFormData as props
   const [isDirty, setDirty] = useState(false);
 
   
@@ -47,12 +47,16 @@ function FillReport({ reportType, onBackToChecks, onFormSubmit, formData, setFor
     setDirty(formIsValid);
   }, [formData]);
 
+
+// this handle the continue after the form is filled
+
 const handleSubmit = (event) => {
+  // setDirty(true) // <--------- only for test to be removed 
   event.preventDefault();
-  if (isDirty) {
+  // if (isDirty) {
     onFormSubmit(formData); 
-    setDirty(false);
-  }
+    // setDirty(false);
+  // }
 };
   const handleBack = () => {
     if (isDirty && window.confirm("You have unsaved changes. Are you sure you want to leave?")) {
@@ -63,18 +67,25 @@ const handleSubmit = (event) => {
   };
   
   return (
-    <Container component="main" maxWidth="xl" sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Typography component="h3" variant="h3" gutterBottom> {reportType} </Typography>
+    // Fix this when is on ipad cant scrool to see the button
+    <Container component="main" maxWidth="" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      
+      <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+          <Typography component="h3" variant="h3" gutterBottom> {reportType} </Typography>
+          </Grid>
+        </Grid>
+
+     
       <Box sx={{
         flexGrow: 1,
-        // overflowY: 'hidden',
         width: '100%',
         borderRadius: 2,
       }}>
         <PilotInfoSection formData={formData} setFormData={setFormData} />
         <Box sx={{ mt: 'auto' }}>
-          <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mt: 3, mb: 2 }} onClick={handleSubmit} disabled={!isDirty}>
-            Continue
+          <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mt: 3, mb: 2 }} onClick={handleSubmit} >
+            Save and Continue
           </Button>
           <Button type="button" fullWidth variant="outlined" color="secondary" sx={{ mt: 1, mb: 2 }} onClick={handleBack}>
             Back to Checks

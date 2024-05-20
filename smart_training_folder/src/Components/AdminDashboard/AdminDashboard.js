@@ -16,7 +16,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import GradingIcon from '@mui/icons-material/Grading';
 import HandleChecksView from './Flight Check/HandleChecksView';
-import GenerateCKPdf from './Flight Check/GenerateCKPdf'
+// import GenerateCKPdf from './Flight Check/GenerateCKPdf'
 
 const drawerWidth = 240;
 
@@ -66,9 +66,7 @@ const AdminDashboard = ({ userinfo }) => {
       case 'Admin':
         return <AdminView  />;
       case 'Checks':
-        return <HandleChecksView />;
-      case 'PdfTest':
-        return <GenerateCKPdf />;
+        return <HandleChecksView  userInfo={userinfo} />;
       default:
         return <HomeView />;
     }

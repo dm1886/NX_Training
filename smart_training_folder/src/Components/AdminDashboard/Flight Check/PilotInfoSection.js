@@ -7,6 +7,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Chip from '@mui/material/Chip';
+
 const PilotInfoSection = ({reportType, formData, setFormData }) => {
   const [pilots, setPilots] = useState([]);
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -35,14 +36,25 @@ const PilotInfoSection = ({reportType, formData, setFormData }) => {
 
   // Handle the selection of a pilot from the autocomplete
   // Handle the selection of a pilot from the autocomplete
-const handleOptionSelected = (event, newValue) => {
+  const fetchLastReportId = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/lastReportId`);
+      return response.data.lastReportId || 0;
+    } catch (error) {
+      console.error('Failed to fetch last report_id:', error);
+      return 0;
+    }
+  };
+
+const handleOptionSelected = async (event, newValue) => {
   if (newValue) {
     const license = newValue.licenses.find(l => l.license_type === 1 || l.license_type === 2); // search for atpl or cpl license
     const med = newValue.licenses.find(l => l.license_type === 3); // search for medical
-
+    const lastReportId = await fetchLastReportId();
+    const newReportId = lastReportId + 1;
     setFormData({
       ...formData,
-      id: newValue.id || 0,
+      id: newReportId,// need to be progressive ------------ MARK
       AMU_no: newValue.staff_numberStr || "",
       name: newValue.name || "",
       surname: newValue.surname || "",
@@ -52,7 +64,7 @@ const handleOptionSelected = (event, newValue) => {
       licenseValidity: formatDate(license?.expire_date) || "", // Assuming expire_date field exists
       instrumentValidity: formatDate(license?.ir_expire_date) || "", // Placeholder
       medicalValidity: formatDate(med?.expire_date), // Placeholder
-      
+      user_id:newValue.id
     });
     // Ensure that captain and firstOfficer are mutually exclusive
     if (newValue.rank === "cpt") {
@@ -69,6 +81,7 @@ const handleOptionSelected = (event, newValue) => {
   const pad = (num) => num.toString().padStart(2, '0');
 
   const formatDate = (dateString) => {
+
     const date = new Date(dateString);
     return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
   };
@@ -137,9 +150,14 @@ const handleOptionSelected = (event, newValue) => {
 
   return (
     <>
-      <Typography variant="h6" gutterBottom>
-        Pilot Information
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" gutterBottom>
+          Pilot Information
+        </Typography>
+        <Typography variant="h6" gutterBottom>
+          Report ID: {formData.id || '***'}
+        </Typography>
+      </Box>
       <Box
         sx={{
           display: "flex",
@@ -148,24 +166,37 @@ const handleOptionSelected = (event, newValue) => {
           width: "100%",
         }}
       >
-        <Autocomplete
-          freeSolo
-          options={pilots}
-          getOptionLabel={(option) =>
-            `${option?.staff_numberStr} - ${option?.name || ""} ${
-              option?.surname || ""
-            }, ${option?.rank || ""}, ${option?.id || "NIL"}`
-          }
-          onChange={handleOptionSelected}
-          renderInput={(params) => (
+         <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Autocomplete
+              freeSolo
+              options={pilots}
+              getOptionLabel={(option) =>
+                `${option?.staff_numberStr} - ${option?.name || ""} ${
+                  option?.surname || ""
+                }, ${option?.rank || ""}, ${option?.id || "NIL"}`
+              }
+              onChange={handleOptionSelected}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Search by AMU Number"
+                  variant="outlined"
+                  fullWidth
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <TextField
-              {...params}
-              label="Search by AMU Number"
+              label="Staff Number"
               variant="outlined"
               fullWidth
+              value={formData.AMU_no || ""}
+              disabled
             />
-          )}
-        />
+          </Grid>
+        </Grid>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
